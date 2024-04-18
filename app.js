@@ -9,6 +9,8 @@ let movies=JSON.parse(fs.readFileSync('./data/movies.json'))
 app.use(express.json())
 
 
+
+
 //route handler function
 const getAllMovies=(req,res)=>{
     res.status(200).json({
@@ -36,8 +38,6 @@ const addNewMovie=(req,res)=>{
 const getMovieById=(req,res)=>{
     const id=req.params.id*1
     let movie= movies.find((movie)=>movie.id===id)
-
-
    if(!movie){
     return  res.status(400).json({
         status:"fail",
@@ -108,26 +108,43 @@ const deleteMovie=(req,res)=>{
 
 }
 
+
+
+
+
 //GET-/api/v1/movies
 //get all  movies
 
-app.get('/api/v1/movies',getAllMovies)
+// app.get('/api/v1/movies',getAllMovies)
+// //POST--/api/v1/movies
+// //add new movie
+// app.post('/api/v1/movies',addNewMovie)
+// //GET= /api/v1/movies/:id
+// //get movie by id
+// app.get('/api/v1/movies/:id',getMovieById)
+// //PATCH -update release year
+// //update movie by id
+// app.patch('/api/v1/movies/:id',updateMovie)
+// //DELETE- /api/v1/movies/:id
+// //delete movie by id
+// app.delete('/api/v1/movies/:id',deleteMovie)
 
-//POST--/api/v1/movies
-//add new movie
-app.post('/api/v1/movies',addNewMovie)
 
-//GET= /api/v1/movies/:id
-//get movie by id
-app.get('/api/v1/movies/:id',getMovieById)
+app.route('/api/v1/movies')
+.get(getAllMovies)
+.post(addNewMovie)
 
-//PATCH -update release year
-//update movie by id
-app.patch('/api/v1/movies/:id',updateMovie)
 
-//DELETE- /api/v1/movies/:id
-//delete movie by id
-app.delete('/api/v1/movies/:id',deleteMovie)
+app.route('/api/v1/movies/:id')
+.get(getMovieById)
+.patch(updateMovie)
+.delete(deleteMovie)
+
+
+
+
+
+
 
 
 
