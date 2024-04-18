@@ -8,19 +8,17 @@ let movies=JSON.parse(fs.readFileSync('./data/movies.json'))
 //ROUTE=HTTP METHOD+ URL
 app.use(express.json())
 
-//GET-api/movies
 
-app.get('/api/v1/movies',(req,res)=>{
+//route handler function
+const getAllMovies=(req,res)=>{
     res.status(200).json({
         status:"success",
         count:movies.length,
         data:{ 
             movies:movies
         }})
-})
-
-//POST--api/movies
-app.post('/api/v1/movies',(req,res)=>{
+}
+const addNewMovie=(req,res)=>{
     const newId=movies[movies.length-1].id+1
     const newMovie=Object.assign({id:newId},req.body)
     movies.push(newMovie)
@@ -34,10 +32,8 @@ app.post('/api/v1/movies',(req,res)=>{
 
     })
 
-})
-
-//GET= api/v1/movies/:id
-app.get('/api/v1/movies/:id',(req,res)=>{
+}
+const getMovieById=(req,res)=>{
     const id=req.params.id*1
     let movie= movies.find((movie)=>movie.id===id)
 
@@ -56,37 +52,86 @@ app.get('/api/v1/movies/:id',(req,res)=>{
         }
     })
 
-})
+}
+const updateMovie=(req,res)=>{
+    let id=req.params.id*1;
+    let movieToUpdate=movies.find((movie)=>movie.id===id)
+    if (!movieToUpdate) {
+     return  res.status(400).json({
+         status:"fail",
+         message:'No Movie with id '+id+' not found'
+       })
+    }
+ 
+ 
+ 
+ 
+    let movieIndex=movies.indexOf(movieToUpdate)
+    Object.assign(movieToUpdate,req.body)
+    movies[movieIndex]=movieToUpdate
+ 
+    fs.writeFile("./data/movies.json",JSON.stringify(movies),(err)=>{
+     res.status(200).json({
+         status:"success",
+         data:{
+             movie:movieToUpdate
+         }
+     })
+ 
+    })
+ 
+ }
+const deleteMovie=(req,res)=>{
+    const id=req.params.id*1;
+    const movieToDelete=movies.find((movie)=>movie.id===id)
+    if (!movieToDelete) {
+        return  res.status(400).json({
+            status:"fail",
+            message:'No Movie with id '+id+' not found'
+          })
+       }
+    let deleteIndex=movies.indexOf(movieToDelete)
+
+    movies.splice(deleteIndex,1)
+    fs.writeFile("./data/movies.json",JSON.stringify(movies),(err)=>{
+        res.status(204).json({
+            status:"success",
+            data:{
+                movie:null
+            }
+        })
+    
+       })
+
+
+
+
+}
+
+//GET-/api/v1/movies
+//get all  movies
+
+app.get('/api/v1/movies',getAllMovies)
+
+//POST--/api/v1/movies
+//add new movie
+app.post('/api/v1/movies',addNewMovie)
+
+//GET= /api/v1/movies/:id
+//get movie by id
+app.get('/api/v1/movies/:id',getMovieById)
 
 //PATCH -update release year
-app.patch('/api/v1/movies/:id',(req,res)=>{
-   let id=req.params.id*1;
-   let movieToUpdate=movies.find((movie)=>movie.id===id)
-   if (!movieToUpdate) {
-    return  res.status(400).json({
-        status:"fail",
-        message:'No Movie with id '+id+' not found'
-      })
-   }
+//update movie by id
+app.patch('/api/v1/movies/:id',updateMovie)
+
+//DELETE- /api/v1/movies/:id
+//delete movie by id
+app.delete('/api/v1/movies/:id',deleteMovie)
 
 
 
 
-   let movieIndex=movies.indexOf(movieToUpdate)
-   Object.assign(movieToUpdate,req.body)
-   movies[movieIndex]=movieToUpdate
-
-   fs.writeFile("./data/movies.json",JSON.stringify(movies),(err)=>{
-    res.status(200).json({
-        status:"success",
-        data:{
-            movie:movieToUpdate
-        }
-    })
-
-   })
-
-})
 
 //CREATE A SERVER
 const port=3000
