@@ -19,10 +19,8 @@ app.get('/api/v1/movies',(req,res)=>{
         }})
 })
 
-//POSTn--api/movies
+//POST--api/movies
 app.post('/api/v1/movies',(req,res)=>{
-    // res.status(200).send()
-    // console.log(req.body);
     const newId=movies[movies.length-1].id+1
     const newMovie=Object.assign({id:newId},req.body)
     movies.push(newMovie)
@@ -35,8 +33,6 @@ app.post('/api/v1/movies',(req,res)=>{
         })
 
     })
-
-    // res.status(200).send('Created')
 
 })
 
