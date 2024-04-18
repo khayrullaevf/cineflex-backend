@@ -6,8 +6,19 @@ let movies=JSON.parse(fs.readFileSync('./data/movies.json'))
 
 
 //ROUTE=HTTP METHOD+ URL
-app.use(express.json())
+const logger=function(req,res,next){
+    console.log('custom middleware called');
+    next()
+}
 
+
+app.use(express.json())
+app.use(logger)
+
+app.use((req,res,next)=>{
+    req.requestedAt=new Date().toISOString()
+    next()
+})
 
 
 
@@ -16,6 +27,7 @@ const getAllMovies=(req,res)=>{
     res.status(200).json({
         status:"success",
         count:movies.length,
+        requestedAt:req.requestedAt,
         data:{ 
             movies:movies
         }})
@@ -133,6 +145,8 @@ const deleteMovie=(req,res)=>{
 app.route('/api/v1/movies')
 .get(getAllMovies)
 .post(addNewMovie)
+
+
 
 
 app.route('/api/v1/movies/:id')
