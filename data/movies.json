@@ -1,0 +1,22 @@
+[
+    {
+        "id":1,
+        "name":"Die Hard",
+        "releaseYear":1998,
+        "duration":90
+    },
+    
+    {
+        "id":2,
+        "name":"Expandables",
+        "releaseYear":2008,
+        "duration":80
+    },
+    
+    {
+        "id":3,
+        "name":"Intersteller",
+        "releaseYear":2014,
+        "duration":120
+    }
+]
