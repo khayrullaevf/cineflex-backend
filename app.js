@@ -2,6 +2,11 @@
 const express=require('express')
 let app=express()
 const fs=require('fs')
+const morgan=require('morgan')
+
+
+
+
 let movies=JSON.parse(fs.readFileSync('./data/movies.json'))
 
 
@@ -13,6 +18,7 @@ const logger=function(req,res,next){
 
 
 app.use(express.json())
+app.use(morgan('dev'))
 app.use(logger)
 
 app.use((req,res,next)=>{
@@ -51,7 +57,7 @@ const getMovieById=(req,res)=>{
     const id=req.params.id*1
     let movie= movies.find((movie)=>movie.id===id)
    if(!movie){
-    return  res.status(400).json({
+    return  res.status(404).json({
         status:"fail",
         message:'Movie with id '+id+' not found'
       })
@@ -153,6 +159,7 @@ app.route('/api/v1/movies/:id')
 .get(getMovieById)
 .patch(updateMovie)
 .delete(deleteMovie)
+
 
 
 
