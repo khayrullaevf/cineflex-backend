@@ -5,7 +5,7 @@ const router=express.Router()
 router.param('id',moviesController.checkId)
 router.route('/')
 .get(moviesController.getAllMovies)
-.post(moviesController.addNewMovie)
+.post(moviesController.validateBody,moviesController.addNewMovie)
 
 
 
