@@ -14,7 +14,11 @@ const logger=function(req,res,next){
 
 
 app.use(express.json())
+
+if(process.env.NODE_ENV==='development'){
 app.use(morgan('dev'))
+}
+app.use(express.static('./public'))
 app.use(logger)
 
 app.use((req,res,next)=>{
