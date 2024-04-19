@@ -75,7 +75,7 @@ const updateMovie=(req,res)=>{
     let id=req.params.id*1;
     let movieToUpdate=movies.find((movie)=>movie.id===id)
     if (!movieToUpdate) {
-     return  res.status(400).json({
+     return  res.status(404).json({
          status:"fail",
          message:'No Movie with id '+id+' not found'
        })
@@ -103,7 +103,7 @@ const deleteMovie=(req,res)=>{
     const id=req.params.id*1;
     const movieToDelete=movies.find((movie)=>movie.id===id)
     if (!movieToDelete) {
-        return  res.status(400).json({
+        return  res.status(404).json({
             status:"fail",
             message:'No Movie with id '+id+' not found'
           })
@@ -147,18 +147,22 @@ const deleteMovie=(req,res)=>{
 // //delete movie by id
 // app.delete('/api/v1/movies/:id',deleteMovie)
 
+const moviesRouter=express.Router()
 
-app.route('/api/v1/movies')
+
+moviesRouter.route('/')
 .get(getAllMovies)
 .post(addNewMovie)
 
 
 
 
-app.route('/api/v1/movies/:id')
+moviesRouter.route('/:id')
 .get(getMovieById)
 .patch(updateMovie)
 .delete(deleteMovie)
+
+app.use('/api/v1/movies',moviesRouter)
 
 
 
