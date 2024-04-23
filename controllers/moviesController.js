@@ -1,24 +1,15 @@
 const fs=require('fs')
 
+const Movie=require('./../models/movieModel')
 
 let movies=JSON.parse(fs.readFileSync('./data/movies.json'))
 
 
 
 
- exports.checkId=(req,res,next,value)=>{
-    console.log('Movie id  is '+value);
-    let movie= movies.find((movie)=>movie.id===value*1)
-    if(!movie){
-     return  res.status(404).json({
-         status:"fail",
-         message:'Movie with id '+value+' not found'
-       })
-    }
-    next()
- }
+
  exports.validateBody=(req,res,next)=>{
-    if (!req.body.name||!req.body.releaseYear) {
+    if (!req.body.name||!req.body.duration) {
         return res.status(400).json({
             status:"fail",
             message:'Not a valid movie data'
@@ -28,77 +19,100 @@ let movies=JSON.parse(fs.readFileSync('./data/movies.json'))
     next()
  }
 
- exports.getAllMovies=(req,res)=>{
+ exports.getAllMovies=async (req,res)=>{
+    try {
+    const movies= await Movie.find()
     res.status(200).json({
         status:"success",
         count:movies.length,
-        requestedAt:req.requestedAt,
-        data:{ 
+        data:{
             movies:movies
-        }})
+        }
+    })
+    } catch (error) {
+        console.log(error);
+        res.status(404).json({
+            status:"fail",
+            message:error.message
+        })
+        
+    }
+
 }
- exports.addNewMovie=(req,res)=>{
-    const newId=movies[movies.length-1].id+1
-    const newMovie=Object.assign({id:newId},req.body)
-    movies.push(newMovie)
-    fs.writeFile('./data/movies.json',JSON.stringify(movies),(err)=>{
+ exports.addNewMovie=async (req,res)=>{
+    try {
+        const movie= await Movie.create(req.body)
         res.status(201).json({
             status:"success",
             data:{
-                movie:newMovie
+                movie:movie
             }
         })
-
-    })
+        
+    } catch (error) {
+        console.log(error);
+        res.status(400).json({
+            status:"fail",
+            message:error.message
+        })
+    }
+  
 
 }
- exports.getMovieById=(req,res)=>{
-    const id=req.params.id*1
-    let movie= movies.find((movie)=>movie.id===id)
-    res.status(200).json({
+ exports.getMovieById=async (req,res)=>{
+    try {
+        // const movie=await Movie.find({_id:req.params.id})
+        const movie=await Movie.findById(req.params.id);
+        res.status(200).json({
+            status:"success",
+            data:{
+                movie:movie
+            }
+        })
+    } catch (error) {
+        res.status(404).json({
+            status:"fail",
+            message:error.message
+        })  
+    }
+
+}
+ exports.updateMovie=async(req,res)=>{
+    try {
+       const movie= await Movie.findByIdAndUpdate(req.params.id,req.body,{new:true,runValidators:true})
+       res.status(200).json({
         status:"success",
         data:{
             movie:movie
         }
     })
 
-}
- exports.updateMovie=(req,res)=>{
-    let id=req.params.id*1;
-    let movieToUpdate=movies.find((movie)=>movie.id===id)
-
-    let movieIndex=movies.indexOf(movieToUpdate)
-    Object.assign(movieToUpdate,req.body)
-    movies[movieIndex]=movieToUpdate
- 
-    fs.writeFile("./data/movies.json",JSON.stringify(movies),(err)=>{
-     res.status(200).json({
-         status:"success",
-         data:{
-             movie:movieToUpdate
-         }
-     })
- 
-    })
- 
+    } catch (error) {
+        res.status(404).json({
+            status:"fail",
+            message:error.message
+        })
+        
+    }
  }
- exports.deleteMovie=(req,res)=>{
-    const id=req.params.id*1;
-    const movieToDelete=movies.find((movie)=>movie.id===id)
-    let deleteIndex=movies.indexOf(movieToDelete)
+ exports.deleteMovie=async(req,res)=>{
+    try {
+       await Movie.findByIdAndDelete(req.params.id)
 
-    movies.splice(deleteIndex,1)
-    fs.writeFile("./data/movies.json",JSON.stringify(movies),(err)=>{
         res.status(204).json({
             status:"success",
-            data:{
-                movie:null
-            }
+            data:null
         })
-    
-       })
 
-
+        
+    } catch (error) {
+        res.status(404).json({
+            status:"fail",
+            message:error.message
+        })
+        
+    }
+  
 }
 
 
