@@ -21,7 +21,31 @@ let movies=JSON.parse(fs.readFileSync('./data/movies.json'))
 
  exports.getAllMovies=async (req,res)=>{
     try {
-    const movies= await Movie.find()
+   
+        // const excludeFields=['sort', 'page','limit','fields']
+
+        // const queryObj={...req.query}
+        // excludeFields.forEach((el)=>{
+        //    delete queryObj[el]
+        // })
+        // console.log(req.query);
+        let queryStr=JSON.stringify(req.query)
+
+       queryStr=queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match)=>`$${match}`)
+       const queryObj= JSON.parse(queryStr)
+    //    console.log(queryObj);
+
+    const movies= await Movie.find(queryObj)
+    // const movies= await Movie.find()
+    // .where('duration')
+    // .gte(req.query.duration)
+    // .where('ratings')
+    // .gte(req.query.ratings)
+    // .where('price')
+    // .lte(req.query.price)
+
+
+
     res.status(200).json({
         status:"success",
         count:movies.length,
