@@ -19,30 +19,67 @@ let movies=JSON.parse(fs.readFileSync('./data/movies.json'))
     next()
  }
 
+
+ 
+ exports.getHighestRated=(req,res,next)=>{
+    req.query.limit=5
+    req.query.sorting='-ratings'
+    next()
+}
+
  exports.getAllMovies=async (req,res)=>{
     try {
+
    
-        // const excludeFields=['sort', 'page','limit','fields']
+    let queryStr=JSON.stringify(req.query)
+    queryStr=queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match)=>`$${match}`)
+    const queryObj= JSON.parse(queryStr)
 
-        // const queryObj={...req.query}
-        // excludeFields.forEach((el)=>{
-        //    delete queryObj[el]
-        // })
-        // console.log(req.query);
-        let queryStr=JSON.stringify(req.query)
+    let queries=Movie.find()
+    //SORT
+    if(req.query.sorting){
 
-       queryStr=queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match)=>`$${match}`)
-       const queryObj= JSON.parse(queryStr)
-    //    console.log(queryObj);
+       const sortBy=req.query.sorting.split(',').join(' ')
 
-    const movies= await Movie.find(queryObj)
-    // const movies= await Movie.find()
-    // .where('duration')
-    // .gte(req.query.duration)
-    // .where('ratings')
-    // .gte(req.query.ratings)
-    // .where('price')
-    // .lte(req.query.price)
+       queries= queries.sort(sortBy)
+        
+    }else{
+        queries= queries.sort('-createdAt')
+
+    }
+
+
+    //LIMITING FIELDS
+    if(req.query.fields){
+        const fields=req.query.fields.split(',').join(' ')
+        queries=queries.select(fields)
+    }else{
+        queries=queries.select("-__v")
+    }
+
+
+    //PAGINATION
+    const page=req.query.page*1||1
+    const limit=req.query.limit*1||10
+    //PAGE 1:1-10 ,PAGE 2 : 11-20 ,PAGE 3: 21-30
+    const skiping=(page-1)*limit
+
+    queries=queries.skip(skiping).limit(limit)
+
+    if(req.query.page){
+        const moviesCount=await Movie.countDocuments()
+        if(skiping>=moviesCount){
+            throw new Error("This page is not found")
+        }
+
+    }
+
+
+
+
+
+
+    let movies=await queries
 
 
 
