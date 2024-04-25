@@ -1,6 +1,6 @@
 const mongoose=require('mongoose')
 
-
+const fs=require('fs')
 
 const movieSchema=new mongoose.Schema({
     name:{
@@ -58,7 +58,8 @@ const movieSchema=new mongoose.Schema({
        price:{
         type:Number,
         required:[true,'Price is required']
-       }
+       },
+       createdBy:String
 },{
     toJSON:{virtuals:true},
     toObject:{virtuals:true}
@@ -68,6 +69,27 @@ movieSchema.virtual('durationInHours').get(function(){
     return this.duration/60
 
 
+})
+
+
+//.save() 
+
+movieSchema.pre('save',function(next) {
+
+    this.createdBy='Fazliddin'
+
+    console.log('Save middleware is called');
+    next()
+})
+
+
+movieSchema.post('save',function(doc,next) {
+    const content=`A new  movie document with name ${doc.name}  has been created by ${doc.createdBy}\n`
+    fs.writeFileSync('./log/log.txt',content,{flag:'a'},(err)=>{
+        console.log(err.message);
+    })
+
+    next()
 })
 
 const Movie=mongoose.model('Movie',movieSchema)
