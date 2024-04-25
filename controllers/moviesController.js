@@ -2,6 +2,10 @@ const fs=require('fs')
 
 const Movie=require('./../models/movieModel')
 
+const ApiFeatures=require('./../utilis/apiFeatures')
+
+
+
 let movies=JSON.parse(fs.readFileSync('./data/movies.json'))
 
 
@@ -30,59 +34,14 @@ let movies=JSON.parse(fs.readFileSync('./data/movies.json'))
  exports.getAllMovies=async (req,res)=>{
     try {
 
-   
-    let queryStr=JSON.stringify(req.query)
-    queryStr=queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match)=>`$${match}`)
-    const queryObj= JSON.parse(queryStr)
 
-    let queries=Movie.find()
-    //SORT
-    if(req.query.sorting){
+    const features=new ApiFeatures(Movie.find(),req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate()
 
-       const sortBy=req.query.sorting.split(',').join(' ')
-
-       queries= queries.sort(sortBy)
-        
-    }else{
-        queries= queries.sort('-createdAt')
-
-    }
-
-
-    //LIMITING FIELDS
-    if(req.query.fields){
-        const fields=req.query.fields.split(',').join(' ')
-        queries=queries.select(fields)
-    }else{
-        queries=queries.select("-__v")
-    }
-
-
-    //PAGINATION
-    const page=req.query.page*1||1
-    const limit=req.query.limit*1||10
-    //PAGE 1:1-10 ,PAGE 2 : 11-20 ,PAGE 3: 21-30
-    const skiping=(page-1)*limit
-
-    queries=queries.skip(skiping).limit(limit)
-
-    if(req.query.page){
-        const moviesCount=await Movie.countDocuments()
-        if(skiping>=moviesCount){
-            throw new Error("This page is not found")
-        }
-
-    }
-
-
-
-
-
-
-    let movies=await queries
-
-
-
+    let movies=await features.query
     res.status(200).json({
         status:"success",
         count:movies.length,
@@ -177,3 +136,96 @@ let movies=JSON.parse(fs.readFileSync('./data/movies.json'))
 }
 
 
+
+ exports.getMovieStats=async(req,res)=>{
+    try {
+
+     const stats=await Movie.aggregate([
+        {$match:{ratings:{$gte:4.5}}},
+        {$group:{
+            _id:'$releaseYear',
+            avgRating:{$avg:'$ratings'},
+            avgPrice:{$avg:'$price'},
+            minPrice:{$min:'$price'},
+            maxPrice:{$max:'$price'},
+            priceTotal:{$sum:'$price'},
+            movieCount:{$sum:1},
+        }},
+        { $sort:{minPrice:1}},
+        {$match:{maxPrice:{$gte:60}}},
+     ])
+
+
+
+     res.status(200).json({
+        status:"success",
+        count:stats.length,
+        data:{
+            stats:stats
+        }
+    })
+
+
+
+
+        
+    } catch (error) {
+        res.status(404).json({
+            status:"fail",
+            message:error.message
+        })
+        
+    }
+
+
+}
+
+ exports.getMovieByGenre=async(req,res)=>{
+    try {
+
+
+        const genres=req.params.genre;
+        const movies= await Movie.aggregate([
+            {$unwind:'$genres'},
+            {$group:{
+                _id:'$genres',
+                movieCount:{$sum:1},
+                movies:{
+                    $push:`$name`
+                },
+               
+            }},
+            {$addFields:{genre:'$_id'}},
+            {$project:{_id:0}},
+            {$sort:{
+                movieCount:-1
+            }},
+            // {$limit:6}
+            {$match:{genre:genres}}
+
+        ])
+
+
+
+
+
+
+        res.status(200).json({
+            status:"success",
+            count:movies.length,
+            data:{
+                movies:movies
+            }
+        })
+
+
+        
+    } catch (error) {
+        res.status(404).json({
+            status:"fail",
+            message:error.message
+        })
+        
+    }
+
+}
