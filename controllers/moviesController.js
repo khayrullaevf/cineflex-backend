@@ -152,10 +152,8 @@ let movies=JSON.parse(fs.readFileSync('./data/movies.json'))
             movieCount:{$sum:1},
         }},
         { $sort:{minPrice:1}},
-        {$match:{maxPrice:{$gte:60}}},
+        // {$match:{maxPrice:{$gte:60}}},
      ])
-
-
 
      res.status(200).json({
         status:"success",

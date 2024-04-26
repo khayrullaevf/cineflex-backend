@@ -92,6 +92,31 @@ movieSchema.post('save',function(doc,next) {
     next()
 })
 
+//find
+movieSchema.pre(/^find/, function(next){
+    this.find({releaseDate: {$lte: Date.now()}});
+    this.startTime = Date.now()
+    next();
+});
+//find
+movieSchema.post(/^find/,function(docs,next) {
+    this.find({releaseDate: {$lte: Date.now()}});
+    this.endTime = Date.now();
+    const content = `Query took ${this.endTime - this.startTime} milliseconds to fetch the documents.`
+    fs.writeFileSync('./log/log.txt', content, {flag: 'a'}, (err) => {
+        console.log(err.message);
+    });
+    next()
+})
+
+
+
+movieSchema.pre('aggregate', function(next) {
+   this.pipeline().unshift({$match:{releaseDate:{$lte:new Date()}}})
+   next()
+})
+
+
 const Movie=mongoose.model('Movie',movieSchema)
 
 module.exports=Movie
