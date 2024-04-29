@@ -9,8 +9,6 @@ constructor(message,statusCode){
     Error.captureStackTrace(this,this.constructor)
 }
 
-
-
 }
 
 
