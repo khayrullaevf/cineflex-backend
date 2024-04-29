@@ -25,4 +25,4 @@ router.route('/:id')
 .delete(moviesController.deleteMovie)
 
 
-module.exports=router
+ module.exports=router
