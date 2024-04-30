@@ -65,7 +65,6 @@ let movies=JSON.parse(fs.readFileSync('./data/movies.json'))
         // const movie=await Movie.find({_id:req.params.id})
         const movie = await Movie.findById(req.params.id);
 
-
         if(!movie){
             const error = new CustomError('Movie with that ID is not found!', 404);
             return next(error);
