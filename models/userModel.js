@@ -2,6 +2,7 @@ const mongoose=require('mongoose')
 const validator=require('validator')
 
 const bcrypt=require('bcryptjs')
+const crypto=require('crypto')
 
 //name,email,password,confirmPassword,photo
 const userSchema=new mongoose.Schema({
@@ -42,6 +43,22 @@ const userSchema=new mongoose.Schema({
             },
            message: "Password did'nt match"
         }
+    },
+
+    passwordChangedAt:{
+        type:Date
+    },
+
+    role:{
+        type:String,
+        enum:['user','admin'],
+        default:"user"
+    },
+    passwordResetToken:{
+        type:String
+    },
+    passwordResetTokenExpire:{
+        type:Date
     }
 
 
@@ -63,6 +80,31 @@ userSchema.methods.comparePasswordInDb=async(pswd,pswdDB)=>{
     return await bcrypt.compare(pswd,pswdDB)
 }
 
+
+userSchema.methods.IsPasswordChanged=async function(JWTTimestamp){
+    if (this.passwordChangedAt) {
+        const passwordChangedTimestamp=parseInt(this.passwordChangedAt.getTime()/1000)
+        console.log(passwordChangedTimestamp);
+        console.log(this.passwordChangedAt, JWTTimestamp);
+
+       return JWTTimestamp<passwordChangedTimestamp;  //1532672<1748725200
+    }
+    return false
+
+}
+userSchema.methods.createResetPasswordToken=function(){
+    const resetToken=crypto.randomBytes(32).toString('hex')
+
+    this.passwordResetToken=crypto.createHash('sha256').update(resetToken).digest('hex')
+    this.passwordResetTokenExpire=Date.now()+10*60*1000
+   
+
+    console.log(resetToken);
+    console.log(this.passwordResetToken);
+
+    return resetToken
+
+}
 
 
 

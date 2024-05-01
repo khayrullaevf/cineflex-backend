@@ -1,6 +1,7 @@
 const express=require('express')
 const moviesController=require('./../controllers/moviesController')
 const router=express.Router()
+const authController=require('./../controllers/authController')
 
 
 
@@ -13,16 +14,16 @@ router.route('/movie-genres/:genre').get(moviesController.getMovieByGenre)
 
 
 router.route('/')
-.get(moviesController.getAllMovies)
-.post(moviesController.validateBody,moviesController.addNewMovie)
+.get(authController.protect,moviesController.getAllMovies)
+.post(authController.protect,authController.restrict('admin'),moviesController.validateBody,moviesController.addNewMovie)
 
 
 
 
 router.route('/:id')
-.get(moviesController.getMovieById)
-.patch(moviesController.updateMovie)
-.delete(moviesController.deleteMovie)
+.get(authController.protect,authController.restrict('admin'), moviesController.getMovieById)
+.patch(authController.protect,authController.restrict('admin'),moviesController.updateMovie)
+.delete(authController.protect,authController.restrict('admin'),moviesController.deleteMovie)
 
 
  module.exports=router
