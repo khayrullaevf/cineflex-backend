@@ -16,20 +16,25 @@ const signToken=id=>{
 }
 
 
+const createSendResponse=(user,statusCode,res)=>{
+  const token=signToken(user._id)
+
+
+  res.status(statusCode).json({
+      status:"success",
+      token:token,
+      data:{
+          user:user
+      }
+  })
+
+}
+
  exports.signup=asyncErrorHandler(async(req,res,next)=>{
 
         const newUser=await User.create(req.body) 
 
-        const token=signToken(newUser._id)
-
-
-        res.status(201).json({
-            status:"success",
-            token:token,
-            data:{
-                user:newUser
-            }
-        })
+        createSendResponse(newUser,201,res)
     })  
 
 
@@ -55,12 +60,8 @@ const signToken=id=>{
           }
           
 
-          const token=signToken(user._id)
-          res.status(200).json({
-            status:'success',
-            token:token,
-            user:user
-        })
+
+          createSendResponse(user,200,res)
 
 
 
@@ -72,7 +73,6 @@ const signToken=id=>{
  
 
       //1.Read the token & check if it exist
-
       const testToken= req.headers.authorization;
       let token;
       if (testToken&&testToken.startsWith('Bearer')) {
@@ -83,15 +83,13 @@ const signToken=id=>{
         next(new CustomError('You are not logged in!',401))
       }
 
-
       //2. Validate token
        const decodedToken=await util.promisify(jwt.verify)(token,process.env.SECRET_STR)
 
        console.log(decodedToken);
 
-
       //3. if the user exists
-        
+      
        const user=await User.findById(decodedToken.id)
        console.log(user);
        if (!user) {
@@ -204,16 +202,34 @@ const signToken=id=>{
       user.save()
 
       //3.login
+      createSendResponse(user,201,res)
 
-      const loginToken=signToken(user._id)
+    })
 
 
-      res.status(201).json({
-          status:"success",
-          token:loginToken,
-          data:{
-              user:user
-          }
-      })
+    exports.updatePassword=asyncErrorHandler(async(req,res,next)=>{
+
+      //get current user data from db
+
+      const user= await User.findById(req.user._id).select('+password');
+     
+      //check if the supplied current password is correct
+      if (!(await user.comparePasswordInDb(req.body.currentPassword,user.password))) {
+
+        return next(new CustomError('Current password you provided is wrong'),401)
+        
+      }
+
+      //if supplied passowrd is correct, update user password with new value
+
+      user.password=req.body.password
+      user.confirmPassword=req.body.confirmPassword
+      await user.save()
+
+
+    //login user and sent jwt
+
+    createSendResponse(user,200,res)
+
 
     })
