@@ -113,6 +113,14 @@ userSchema.methods.createResetPasswordToken=function(){
 
 
 
+userSchema.pre(/^find/,function(next){
+    //this keyword in regular function will point to current query
+     this.find({active:{$ne:false}})
+     next()
+
+});
+
+
 
 
 
