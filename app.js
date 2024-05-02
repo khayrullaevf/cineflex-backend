@@ -1,13 +1,29 @@
 
 const express=require('express')
-let app=express()
-const fs=require('fs')
-const morgan=require('morgan')
+// const fs=require('fs')
+// const morgan=require('morgan')
 const moviesRouter=require('./routes/moviesRoute')
 const authRouter=require('./routes/authRouter')
 const userRouter=require('./routes/userRoute')
 const CustomErr=require('./utilis/customError')
 const globalErrHandler=require('.//controllers/error-controller')
+const helmet=require('helmet')
+const sanitize=require('express-mongo-sanitize')
+const xss=require('xss-clean');
+const hpp=require('hpp');
+
+let app=express()
+
+
+
+app.use(helmet())
+
+
+
+
+
+
+
 
 const rateLimit=require('express-rate-limit')
 let limiter=rateLimit({
@@ -17,7 +33,14 @@ let limiter=rateLimit({
 });
 
 
+
 app.use('/api',limiter)
+
+ 
+
+
+
+
 
 
 //ROUTE=HTTP METHOD+ URL
@@ -27,11 +50,28 @@ const logger=function(req,res,next){
 }
 
 
-app.use(express.json())
+app.use(express.json({
+    limit:'10kb'
+}))
 
-if(process.env.NODE_ENV==='development'){
-app.use(morgan('dev'))
-}
+app.use(xss())
+app.use(hpp({waitlist:[
+    'duration',
+    'ratings',
+    'releaseYear',
+    'genres',
+    'directors',
+    'releaseDate',
+    'actors'
+]}))
+
+
+
+app.use(sanitize())
+
+// if(process.env.NODE_ENV==='development'){
+// app.use(morgan('dev'))
+// }
 
 
 
