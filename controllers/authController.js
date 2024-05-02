@@ -16,7 +16,7 @@ const signToken=id=>{
 }
 
 
- exports.createSendResponse=(user,statusCode,res)=>{
+const createSendResponse=(user,statusCode,res)=>{
   const token=signToken(user._id)
 
 
