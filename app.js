@@ -9,6 +9,16 @@ const userRouter=require('./routes/userRoute')
 const CustomErr=require('./utilis/customError')
 const globalErrHandler=require('.//controllers/error-controller')
 
+const rateLimit=require('express-rate-limit')
+let limiter=rateLimit({
+    max:1000,
+    windowMs:60*60*1000,
+    message:"We have received too many requests from this IP, Please try after one hour."
+});
+
+
+app.use('/api',limiter)
+
 
 //ROUTE=HTTP METHOD+ URL
 const logger=function(req,res,next){
@@ -22,6 +32,9 @@ app.use(express.json())
 if(process.env.NODE_ENV==='development'){
 app.use(morgan('dev'))
 }
+
+
+
 app.use(express.static('./public'))
 app.use(logger)
 
