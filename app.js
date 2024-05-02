@@ -5,6 +5,7 @@ const fs=require('fs')
 const morgan=require('morgan')
 const moviesRouter=require('./routes/moviesRoute')
 const authRouter=require('./routes/authRouter')
+const userRouter=require('./routes/userRoute')
 const CustomErr=require('./utilis/customError')
 const globalErrHandler=require('.//controllers/error-controller')
 
@@ -33,7 +34,8 @@ app.use((req,res,next)=>{
 
 //ROUTE
 app.use('/api/v1/movies',moviesRouter)
-app.use('/api/v1/users',authRouter)
+app.use('/api/v1/auth',authRouter)
+app.use('/api/v1/user',userRouter)
 
 app.all('*',(req,res,next)=>{
     // res.status(400).json({
